@@ -4,7 +4,7 @@ import React from 'react';
 const SettingsPage = () => {
   return (
     <div className="settings-page">
-      <h1>Financial Status</h1>
+      <h1>Setting Page</h1>
       <p>This is a placeholder page for displaying the user's setting status.</p>
     </div>
   );
