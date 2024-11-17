@@ -13,13 +13,13 @@ const App = () => {
         <nav className="main-navbar">
           <div className="logo">FinAssist</div>
           <div className="nav-links">
-            <NavLink to="/home" className="nav-link" activeClassName="active-link">
+            <NavLink to="/home" className={({ isActive }) => (isActive ? 'active' : '')}>
               Home
             </NavLink>
-            <NavLink to="/financial-status" className="nav-link" activeClassName="active-link">
+            <NavLink to="/financial-status" className={({ isActive }) => (isActive ? 'active' : '')}>
               Financial Status
             </NavLink>
-            <NavLink to="/settings" className="nav-link" activeClassName="active-link">
+            <NavLink to="/settings" className={({ isActive }) => (isActive ? 'active' : '')}>
               Settings
             </NavLink>
           </div>

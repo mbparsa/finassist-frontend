@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
+import Papa from 'papaparse';
 import './LandingPage.css';
+
 
 const LandingPage = () => {
   const [csvFile, setCsvFile] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-
+  const [errorMessage, setErrorMessage] = useState('');
+  const expectedHeaders = ['Transaction Date','Clearing Date', 'Description','Merchant', 'Category', 'Type', 'Amount (USD)', 'Purchased By'];
+  
+  
   const handleFileChange = (e) => {
     setCsvFile(e.target.files[0]);
   };
@@ -27,9 +32,12 @@ const LandingPage = () => {
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    const file = e.dataTransfer.files[0];
+    if (file && file.length > 0 && (file.type === 'text/csv'|| file.name.endsWith('.csv'))) {
       setCsvFile(e.dataTransfer.files[0]);
       e.dataTransfer.clearData();
+    }else{
+        setErrorMessage('Please upload a valid CSV file.');
     }
   };
 
@@ -38,6 +46,83 @@ const LandingPage = () => {
     e.stopPropagation();
   };
 
+  const validateHeaders = (headers) => {
+    const normalizedExpectedHeaders = expectedHeaders.map(header => header.trim().toLowerCase());
+    const normalizedHeaders = headers.map(header => header.trim().toLowerCase());
+    const i = 0;
+    const isValid = normalizedExpectedHeaders.every(header => normalizedHeaders.includes(header));
+    console.log('isValid:', isValid);
+    return isValid;
+  };
+
+  useEffect(() => {
+    if(!csvFile){
+        console.log('No file selected');
+        return;
+    } else {
+        console.log('csvFile state updated:', csvFile);
+        setIsUploadModalOpen(false);
+  
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const csvData = event.target.result;
+          console.log('CSV File Content:', csvData.slice(0, 200)); // Log the first 200 characters of the file content
+          Papa.parse(csvData, {
+            header: true,
+            complete: function(results) {
+              try {
+                const headers = results.meta.fields;
+                console.log('Parsed CSV Headers:', headers); // Log the headers
+                if (validateHeaders(headers)) {
+                  const selectedData = results.data.map(row => ({
+                    transactionDate: row['Transaction Date'],
+                    merchant: row['Merchant'],
+                    category: row['Category'],
+                    type: row['Type'],
+                    amount: row['Amount(USD)'],
+                    transactionType: row['Transaction Type']
+                  }));
+                  console.log('Selected Data:', selectedData.slice(0, 5)); // Log the first 5 rows of selected data
+                  return;
+                  sendDataToBackend(selectedData);
+                } else {
+                  setErrorMessage('Invalid CSV format. Please upload an Apple Pay CSV extract.');
+                }
+              } catch (error) {
+                console.error('Error parsing CSV:', error);
+                setErrorMessage('An error occurred while parsing the CSV file.');
+              }
+            },
+            error: function(error) {
+              console.error('Error reading CSV file:', error);
+              setErrorMessage('An error occurred while reading the CSV file.');
+            }
+          });
+        };
+        reader.readAsText(csvFile, 'UTF-8'); // Ensure the file is read as text with UTF-8 encoding
+      }
+    }, [csvFile]);
+
+
+    const sendDataToBackend = async (data) => {
+        try {
+            const response = await fetch('http://localhost:8000/transactions/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            if (response.ok) {
+                alert('Data uploaded successfully');
+            } else {
+                alert('Error uploading data');
+            }
+        } catch (error) {
+            alert('Error uploading data');
+            console.error('Error uploading data:', error );
+        }
+    };
   return (
     <div className="landing-page">
       {!isUploadModalOpen && (
@@ -101,6 +186,7 @@ const LandingPage = () => {
           </div>
         </div>
       )}
+      {errorMessage && <div className="error-message">{errorMessage}</div>}
     </div>
   );
 };
