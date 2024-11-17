@@ -9,7 +9,8 @@ const LandingPage = () => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [serverResponse, setServerResponse] = useState(null); // State variable for server response
-
+  const [successMessage, setSuccessMessage] = useState(''); // State variable for success message
+  const [failedMessage, setFailedMessage] = useState(''); // State variable for failed message
   const expectedHeaders = ['Transaction Date','Clearing Date', 'Description','Merchant', 'Category', 'Type', 'Amount (USD)', 'Purchased By'];
   //const normalizedExpectedHeaders = expectedHeaders.map(header => expectedHeaders.trim().toLowerCase());
   
@@ -63,15 +64,25 @@ const LandingPage = () => {
         console.log('No file selected');
         return;
     } else {
-        console.log('csvFile state updated:', csvFile);
         setIsUploadModalOpen(false);
-  
+        readCSVFile(csvFile)
+        .then((data) => {
+            sendDataToBackend(data);
+        }).catch((error) => {
+            console.error('Error reading CSV file:', error);
+        });
+      }
+    }, [csvFile]);
+
+    function readCSVFile (file){
+        return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (event) => {
           const csvData = event.target.result;
           console.log('CSV File Content:', csvData.slice(0, 200)); // Log the first 200 characters of the file content
           Papa.parse(csvData, {
             header: true,
+            skipEmptyLines: true,
             complete: function(results) {
               try {
                 const headers = results.meta.fields;
@@ -85,25 +96,28 @@ const LandingPage = () => {
                       amount: row['Amount (USD)'],
                       type: row['Type'],
                     }));
-                  console.log('Selected Data:', selectedData.slice(0, 5)); // Log the first 5 rows of selected data
-                  sendDataToBackend(selectedData);
+                    console.log('Selected Data:', selectedData.slice(0, 5)); // Log the first 5 rows of selected data
+                    resolve(selectedData);
                 } else {
-                  setErrorMessage('Invalid CSV format. Please upload an Apple Pay CSV extract.');
+                    setErrorMessage('Invalid CSV format. Please upload an Apple Pay CSV extract.');
+                    reject('Invalid CSV format');
                 }
               } catch (error) {
-                console.error('Error parsing CSV:', error);
-                setErrorMessage('An error occurred while parsing the CSV file.');
+                    console.error('Error parsing CSV:', error);
+                    setErrorMessage('An error occurred while parsing the CSV file.');
+                    reject(error);
               }
             },
             error: function(error) {
-              console.error('Error reading CSV file:', error);
-              setErrorMessage('An error occurred while reading the CSV file.');
+                console.error('Error reading CSV file:', error);
+                setErrorMessage('An error occurred while reading the CSV file.');
+                reject(error);
             }
           });
         };
         reader.readAsText(csvFile, 'UTF-8'); // Ensure the file is read as text with UTF-8 encoding
-      }
-    }, [csvFile]);
+    });
+    };
 
     const getUserName = async () => {
         try {
@@ -133,13 +147,13 @@ const LandingPage = () => {
                 body: JSON.stringify(data),
             });
             if (response.ok) {
-                alert('Data uploaded successfully');
+                setSuccessMessage('Data uploaded successfully!'); // Set success message
             } else {
-
-                alert('Error uploading data');
+                setFailedMessage('We could not upload the data!'); // Set Failed message
             }
             const responseData = await response.json();
             setServerResponse(responseData); // Update state with server response
+
         } catch (error) {
             alert('Error uploading data');
             console.error('Error uploading data:', error );
@@ -209,6 +223,7 @@ const LandingPage = () => {
         </div>
       )}
       {errorMessage && <div className="error-message">{errorMessage}</div>}
+      {successMessage && <div className="success-message">{successMessage}</div>}
       {serverResponse && (
         <div className="server-response">
           <h3>Server Response</h3>
