@@ -8,8 +8,10 @@ const LandingPage = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [serverResponse, setServerResponse] = useState(null); // State variable for server response
+
   const expectedHeaders = ['Transaction Date','Clearing Date', 'Description','Merchant', 'Category', 'Type', 'Amount (USD)', 'Purchased By'];
-  
+  //const normalizedExpectedHeaders = expectedHeaders.map(header => expectedHeaders.trim().toLowerCase());
   
   const handleFileChange = (e) => {
     setCsvFile(e.target.files[0]);
@@ -26,6 +28,7 @@ const LandingPage = () => {
   };
 
   const toggleProfileMenu = () => {
+    getUserName();
     setIsProfileMenuOpen(!isProfileMenuOpen);
   };
 
@@ -74,16 +77,15 @@ const LandingPage = () => {
                 const headers = results.meta.fields;
                 console.log('Parsed CSV Headers:', headers); // Log the headers
                 if (validateHeaders(headers)) {
-                  const selectedData = results.data.map(row => ({
-                    transactionDate: row['Transaction Date'],
-                    merchant: row['Merchant'],
-                    category: row['Category'],
-                    type: row['Type'],
-                    amount: row['Amount(USD)'],
-                    transactionType: row['Transaction Type']
-                  }));
+                    console.log(results.data);
+                    const selectedData = results.data.map(row => ({
+                      transactionDate: row['Transaction Date'],
+                      merchant: row['Merchant'],
+                      category: row['Category'],
+                      amount: row['Amount (USD)'],
+                      type: row['Type'],
+                    }));
                   console.log('Selected Data:', selectedData.slice(0, 5)); // Log the first 5 rows of selected data
-                  return;
                   sendDataToBackend(selectedData);
                 } else {
                   setErrorMessage('Invalid CSV format. Please upload an Apple Pay CSV extract.');
@@ -103,10 +105,27 @@ const LandingPage = () => {
       }
     }, [csvFile]);
 
+    const getUserName = async () => {
+        try {
+            const response = await fetch('http://localhost:8000/users/');
+            if (response.ok) {
+                const data = await response.json();
+                console.log('User Data:', data);
+            } else {
+                alert('Error fetching user data');
+            }
+        } catch (error) {
+            alert('Error fetching user data');
+            console.error('Error fetching user data:', error);
+        }
+    };
+
+
 
     const sendDataToBackend = async (data) => {
         try {
-            const response = await fetch('http://localhost:8000/transactions/', {
+            console.log('Outgoing Data:', data); // Log the outgoing data
+            const response = await fetch('http://localhost:8000/transactions/applepayscv/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -116,8 +135,11 @@ const LandingPage = () => {
             if (response.ok) {
                 alert('Data uploaded successfully');
             } else {
+
                 alert('Error uploading data');
             }
+            const responseData = await response.json();
+            setServerResponse(responseData); // Update state with server response
         } catch (error) {
             alert('Error uploading data');
             console.error('Error uploading data:', error );
@@ -187,6 +209,16 @@ const LandingPage = () => {
         </div>
       )}
       {errorMessage && <div className="error-message">{errorMessage}</div>}
+      {serverResponse && (
+        <div className="server-response">
+          <h3>Server Response</h3>
+          <p>{serverResponse.message}</p>
+          <pre>{JSON.stringify(serverResponse.data, null, 2)}</pre>
+          {serverResponse.plot && (
+            <img src={`data:image/png;base64,${serverResponse.plot}`} alt="Plot" />
+          )}
+        </div>
+      )}
     </div>
   );
 };
