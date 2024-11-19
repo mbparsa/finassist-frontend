@@ -1,6 +1,9 @@
 import React, { useState , useEffect} from 'react';
 import Papa from 'papaparse';
+import BarPlot from './BarPlot';
 import './LandingPage.css';
+
+
 
 
 const LandingPage = () => {
@@ -12,8 +15,16 @@ const LandingPage = () => {
   const [successMessage, setSuccessMessage] = useState(''); // State variable for success message
   const [failedMessage, setFailedMessage] = useState(''); // State variable for failed message
   const expectedHeaders = ['Transaction Date','Clearing Date', 'Description','Merchant', 'Category', 'Type', 'Amount (USD)', 'Purchased By'];
+  const [selectedCategory, setSelectedCategory] = useState(''); // State variable for selected category
+  const [selectedOption, setSelectedOption] = useState('Dashboard'); // State variable for selected option
+
+  const [plotData, setPlotData] = useState([]); // State variable for plot data
   //const normalizedExpectedHeaders = expectedHeaders.map(header => expectedHeaders.trim().toLowerCase());
   
+  const handleOptionChange = (option) => {
+    setSelectedOption(option);
+  };
+
   const handleFileChange = (e) => {
     setCsvFile(e.target.files[0]);
   };
@@ -67,6 +78,7 @@ const LandingPage = () => {
         setIsUploadModalOpen(false);
         readCSVFile(csvFile)
         .then((data) => {
+            setPlotData(data);
             sendDataToBackend(data);
         }).catch((error) => {
             console.error('Error reading CSV file:', error);
@@ -159,6 +171,16 @@ const LandingPage = () => {
             console.error('Error uploading data:', error );
         }
     };
+
+    const handleCategoryChange = (category) => {
+        setSelectedCategory(category);
+      };
+    
+      const filteredData = selectedCategory
+        ? plotData.filter(item => item.category === selectedCategory)
+        : plotData;
+
+
   return (
     <div className="landing-page">
       {!isUploadModalOpen && (
@@ -197,7 +219,6 @@ const LandingPage = () => {
               <div className="placeholder-graph">[Graph Placeholder]</div>
             </div>
           </div>
-
           <div className="csv-upload-trigger">
             <button onClick={openUploadModal} className="open-upload-modal-button">
               Upload Apple Pay File
@@ -222,6 +243,7 @@ const LandingPage = () => {
           </div>
         </div>
       )}
+
       {errorMessage && <div className="error-message">{errorMessage}</div>}
       {successMessage && <div className="success-message">{successMessage}</div>}
       {serverResponse && (
@@ -234,6 +256,26 @@ const LandingPage = () => {
           )}
         </div>
       )}
+      {plotData.length > 0 && (
+        <div className="plot-container">
+        <label htmlFor="category-select">Select Category:</label>
+        <div className="category-buttons">
+            <button onClick={() => handleCategoryChange('')}>All</button>
+            <button onClick={() => handleCategoryChange('Others')}>Others</button>
+            <button onClick={() => handleCategoryChange('Grocery')}>Grocery</button>
+            <button onClick={() => handleCategoryChange('Entertainment')}>Entertainment</button>
+            <button onClick={() => handleCategoryChange('Sports')}>Sports</button>
+            <button onClick={() => handleCategoryChange('Subscriptions')}>Subscriptions</button>
+          </div>
+        <h3>Spending by Merchant</h3>
+        <BarPlot data={filteredData} />
+
+
+
+        </div>
+    
+      )}
+
     </div>
   );
 };

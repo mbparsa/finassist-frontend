@@ -172,3 +172,26 @@
     font-weight: bold;
     margin-top: 20px;
   }
+
+  .plot-container {
+    margin-top: 20px;
+  }
+
+  .category-buttons {
+    margin-bottom: 20px;
+  }
+  
+  .category-buttons button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
+  .category-buttons button:hover {
+    background-color: #0056b3;
+  }
