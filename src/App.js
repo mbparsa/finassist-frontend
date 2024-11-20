@@ -1,38 +1,25 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, NavLink } from 'react-router-dom';
-import LandingPage from './pages/LandingPage'; // Assuming this is the correct path
-import FinancialStatus from './pages/FinancialStatus'; // Create this component as needed
-import SettingsPage from './pages/SettingsPage'; // Create this component as needed
+import LandingPage from './pages/Home'; // Assuming this is the correct path
+import SettingsPage from './pages/Setting_Page'; // Create this component as needed
 import './App.css'; // Assuming a new CSS file for styling
+import Menu from './components/Menu';
+import AppRoutes from './components/Routes';
 
 const App = () => {
   return (
+    
     <Router>
       <div className="app">
-        {/* Navigation Bar */}
-        <nav className="main-navbar">
-          <div className="logo">FinAssist</div>
-          <div className="nav-links">
-            <NavLink to="/home" className={({ isActive }) => (isActive ? 'active' : '')}>
-              Home
-            </NavLink>
-            <NavLink to="/financial-status" className={({ isActive }) => (isActive ? 'active' : '')}>
-              Financial Status
-            </NavLink>
-            <NavLink to="/settings" className={({ isActive }) => (isActive ? 'active' : '')}>
-              Settings
-            </NavLink>
-          </div>
-        </nav>
-
-        {/* Routes Setup */}
-        <Routes>
-          <Route path="/home" element={<LandingPage />} />
-          <Route path="/financial-status" element={<FinancialStatus />} />
-          <Route path="/settings-page" element={<SettingsPage />} />
-        </Routes>
+        <Menu/>
+          {/* Routes Setup */}
+        <AppRoutes/>
       </div>
+
     </Router>
+
+
+    
   );
 };
 

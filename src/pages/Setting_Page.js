@@ -1,15 +1,15 @@
 import React, { useState , useEffect} from 'react';
 import Papa from 'papaparse';
 import BarPlot from './BarPlot';
-import './LandingPage.css';
-import './Menu';
+import './Setting_Page.css';
+import '../components/Menu';
 import { DisabledByDefault } from '@mui/icons-material';
-import Menu from './Menu';
+import Menu from '../components/Menu';
 
 
 
 
-const LandingPage = () => {
+const Setting_Page = () => {
   const [csvFile, setCsvFile] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -188,7 +188,6 @@ const LandingPage = () => {
   return (
     
     <div className="landing-page">
-      <Menu/>
       {!isUploadModalOpen && (
         <div className="content">
           <div className="csv-upload-trigger">
@@ -247,4 +246,4 @@ const LandingPage = () => {
   );
 };
 
-export default LandingPage;
+export default Setting_Page;
