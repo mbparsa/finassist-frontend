@@ -2,6 +2,9 @@ import React, { useState , useEffect} from 'react';
 import Papa from 'papaparse';
 import BarPlot from './BarPlot';
 import './LandingPage.css';
+import './Menu';
+import { DisabledByDefault } from '@mui/icons-material';
+import Menu from './Menu';
 
 
 
@@ -181,44 +184,13 @@ const LandingPage = () => {
         : plotData;
 
 
-  return (
-    <div className="landing-page">
-      {!isUploadModalOpen && (
-        <nav className="navbar">
-          <div className="logo">FinAssist</div>
-          <div className="user-menu">
-            <img src="user-icon.png" alt="User Icon" className="user-icon" onClick={toggleProfileMenu} />
-            {isProfileMenuOpen && (
-              <div className="dropdown-content">
-                <a href="#">Settings</a>
-                <div className="bank-connect-section">
-                  <h3>Connect to Banks/Cards</h3>
-                  <button id="connect-bank-button">Connect with Plaid</button>
-                </div>
-                <a href="#">Logout</a>
-                <a href="#">Plan (Free, Paid)</a>
-              </div>
-            )}
-          </div>
-        </nav>
-      )}
 
+  return (
+    
+    <div className="landing-page">
+      <Menu/>
       {!isUploadModalOpen && (
         <div className="content">
-          <div className="graphs-section">
-            <div className="graph" id="total-saving">
-              <h3>Total Saving This Month</h3>
-              <div className="placeholder-graph">[Graph Placeholder]</div>
-            </div>
-            <div className="graph" id="total-spending">
-              <h3>Total Spending</h3>
-              <div className="placeholder-graph">[Graph Placeholder]</div>
-            </div>
-            <div className="graph" id="total-invested">
-              <h3>Total Invested</h3>
-              <div className="placeholder-graph">[Graph Placeholder]</div>
-            </div>
-          </div>
           <div className="csv-upload-trigger">
             <button onClick={openUploadModal} className="open-upload-modal-button">
               Upload Apple Pay File
@@ -269,13 +241,8 @@ const LandingPage = () => {
           </div>
         <h3>Spending by Merchant</h3>
         <BarPlot data={filteredData} />
-
-
-
         </div>
-    
       )}
-
     </div>
   );
 };
